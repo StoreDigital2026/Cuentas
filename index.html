@@ -33,7 +33,6 @@
             overflow-x: hidden;
         }
 
-        /* HEADER ADAPTATIVO PARA MÓVIL Y PC */
         header {
             display: flex; 
             justify-content: space-between; 
@@ -74,7 +73,7 @@
 
         @media (max-width: 600px) {
             header { flex-direction: column; padding: 12px 15px; text-align: center; }
-            nav ul { width: 100%; justifyContent: center; gap: 8px; }
+            nav ul { width: 100%; justify-content: center; gap: 8px; }
             nav a { padding: 6px 12px; font-size: 13px; }
         }
 
@@ -164,7 +163,6 @@
         }
         .terms-box li { color: #e2e8f0; font-size: 13px; margin-bottom: 6px; line-height: 1.5; }
 
-        /* TARJETAS DE MÉTODOS DE PAGO */
         .payment-methods-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -182,9 +180,8 @@
             align-items: center;
             gap: 12px;
         }
-        .payment-card span { font-size: 24px; }
-        .payment-card div h4 { font-size: 14px; color: #fff; font-weight: 700; margin-bottom: 2px; }
-        .payment-card div p { font-size: 12px; color: var(--text-muted); margin: 0; }
+        .payment-card span { font-size: 22px; }
+        .payment-card h4 { font-size: 14px; color: #fff; font-weight: 700; margin: 0; }
 
         .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-main); font-weight: 600; }
@@ -261,24 +258,17 @@
                 <div id="detail-full-desc"></div>
             </div>
 
-            <!-- APARTADO DE MÉTODOS DE PAGO DISPONIBLES -->
+            <!-- MÉTODOS DE PAGO LIMPIOS -->
             <div class="card-section">
-                <h2>💳 Métodos de Pago Disponibles</h2>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Aceptamos pagos rápidos y seguros mediante:</p>
+                <h2>💳 Métodos de Pago</h2>
                 <div class="payment-methods-grid">
                     <div class="payment-card">
                         <span>💵</span>
-                        <div>
-                            <h4>Efectivo</h4>
-                            <div>Pagos presenciales o locales</div>
-                        </div>
+                        <h4>Efectivo</h4>
                     </div>
                     <div class="payment-card">
                         <span>🏦</span>
-                        <div>
-                            <h4>Transferencia Bancaria</h4>
-                            <div>Depósitos o transferencias directas</div>
-                        </div>
+                        <h4>Transferencia bancaria</h4>
                     </div>
                 </div>
             </div>
@@ -639,9 +629,23 @@
                     </div>
                 `;
             });
+
+            // Manejar la navegación por historial (botón atrás del navegador)
+            window.addEventListener('popstate', (event) => {
+                if (event.state && event.state.vista === 'detail') {
+                    mostrarDetalleSinHistorial(event.state.id);
+                } else {
+                    cambiarVista('catalog', false);
+                }
+            });
         });
 
         function verDetalle(id) {
+            history.pushState({ vista: 'detail', id: id }, "", `#producto-${id}`);
+            mostrarDetalleSinHistorial(id);
+        }
+
+        function mostrarDetalleSinHistorial(id) {
             const prod = productos.find(p => p.id === id);
             if (!prod) return;
             productoSeleccionadoActual = prod.titulo;
@@ -673,18 +677,24 @@
                 botonPedido.style.boxShadow = "0 4px 25px rgba(16, 185, 129, 0.4)";
             }
 
-            cambiarVista('detail');
+            cambiarVista('detail', false);
         }
 
-        function cambiarVista(vista) {
+        function cambiarVista(vista, pushHistory = true) {
+            if (vista === 'catalog' && pushHistory) {
+                history.pushState({ vista: 'catalog' }, "", window.location.pathname);
+            }
+            
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            
             if (vista === 'catalog') {
                 document.getElementById('catalog-view').classList.add('active');
                 document.getElementById('nav-catalog').classList.add('active');
             } else if (vista === 'detail') {
                 document.getElementById('detail-view').classList.add('active');
             } else if (vista === 'soporte') {
+                if (pushHistory) history.pushState({ vista: 'soporte' }, "", "#soporte");
                 document.getElementById('soporte-view').classList.add('active');
                 document.getElementById('nav-soporte').classList.add('active');
             }
