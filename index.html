@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Store | Catálogo Digital y Soporte</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030408;
+            --card-bg: rgba(18, 22, 38, 0.75);
+            --border-color: rgba(168, 85, 247, 0.25);
+            --primary-gradient: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #4f46e5 100%);
+            --secondary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            --accent-glow: rgba(255, 0, 127, 0.35);
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(121, 40, 202, 0.25) 0%, transparent 45%),
+                radial-gradient(circle at 85% 90%, rgba(255, 0, 127, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.1) 0%, transparent 60%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* HEADER NEÓN */
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 20px 40px;
+            background: rgba(10, 12, 22, 0.85); backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo-container {
+            display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 24px;
+            background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 127, 0.3);
+        }
+
+        .logo-container img { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; border: 2px solid #ff007f; box-shadow: 0 0 15px rgba(255, 0, 127, 0.5); }
+
+        nav ul { display: flex; gap: 15px; list-style: none; }
+        nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 15px; font-weight: 600;
+            padding: 10px 22px; border-radius: 30px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+        nav a:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
+        nav a.active { 
+            background: var(--primary-gradient); color: white; font-weight: 700; 
+            box-shadow: 0 0 25px var(--accent-glow); border-color: rgba(255, 255, 255, 0.3); 
+        }
+
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        .view { display: none; animation: fadeIn 0.4s ease forwards; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BANNER PROMOCIONAL LLAMATIVO */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(121, 40, 202, 0.4) 0%, rgba(255, 0, 127, 0.25) 100%);
+            border: 1px solid rgba(255, 0, 127, 0.4);
+            border-radius: 24px; padding: 35px; margin-bottom: 35px; text-align: center;
+            box-shadow: 0 10px 40px rgba(121, 40, 202, 0.25);
+            position: relative; overflow: hidden;
+        }
+        .hero-banner h1 { font-size: 32px; font-weight: 900; margin-bottom: 10px; background: linear-gradient(135deg, #fff 30%, #ff007f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-banner p { color: #e2e8f0; font-size: 16px; max-width: 600px; margin: 0 auto; }
+
+        /* GRID DEL CATÁLOGO */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        
+        .product-card {
+            background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color);
+            border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 16px;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        .product-card:hover {
+            transform: translateY(-8px); border-color: #ff007f;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 0, 127, 0.3);
+        }
+
+        .product-card img { 
+            width: 100%; height: 170px; object-fit: contain; background: rgba(0, 0, 0, 0.3); 
+            border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+
+        .badge {
+            background: rgba(255, 0, 127, 0.2); color: #ff758c; padding: 6px 14px; border-radius: 30px;
+            font-size: 11px; font-weight: 800; width: fit-content; border: 1px solid rgba(255, 0, 127, 0.4);
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+
+        .product-card h3 { font-size: 19px; font-weight: 700; color: #fff; }
+        
+        .product-card .price { 
+            font-size: 24px; font-weight: 900; 
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+
+        .btn-gradient {
+            background: var(--primary-gradient); color: white; border: none; padding: 14px; border-radius: 14px;
+            font-weight: 700; font-size: 15px; cursor: pointer; text-align: center; transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(255, 0, 127, 0.4); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-gradient:hover {
+            transform: scale(1.03); filter: brightness(1.15);
+            box-shadow: 0 6px 30px rgba(255, 0, 127, 0.6);
+        }
+
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 25px; cursor: pointer; font-weight: 600; transition: color 0.2s; }
+        .back-link:hover { color: #ff007f; }
+
+        .product-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-bottom: 30px; }
+        @media (max-width: 768px) { .product-detail-grid { grid-template-columns: 1fr; } header { padding: 15px 20px; } }
+        
+        .detail-img-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 25px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+        .detail-img-box img { width: 100%; max-height: 320px; object-fit: contain; border-radius: 16px; }
+        
+        .price-box {
+            background: var(--card-bg); border: 1px solid rgba(0, 242, 254, 0.4); border-radius: 18px; padding: 22px;
+            display: flex; justify-content: space-between; align-items: center; margin-top: 15px; box-shadow: 0 4px 25px rgba(0, 242, 254, 0.15);
+        }
+        
+        .card-section { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 22px; padding: 28px; margin-bottom: 25px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+        .card-section h2 { font-size: 19px; font-weight: 700; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; background: linear-gradient(135deg, #fff 40%, #a855f7 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card-section p, .card-section li { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+        .card-section ul, .card-section ol { padding-left: 20px; }
+
+        /* ESTILO DESTACADO PARA TÉRMINOS Y CONDICIONES */
+        .terms-box {
+            background: rgba(10, 14, 26, 0.9);
+            border: 1px solid rgba(0, 242, 254, 0.35);
+            border-radius: 16px;
+            padding: 20px 22px;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6);
+        }
+        .terms-box li {
+            color: #e2e8f0;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; margin-bottom: 8px; color: var(--text-main); font-weight: 600; }
+        input[type="text"], textarea, input[type="file"] {
+            width: 100%; padding: 14px 18px; background: rgba(5, 7, 14, 0.9); border: 1px solid var(--border-color);
+            border-radius: 14px; color: var(--text-main); font-size: 14px; transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus { outline: none; border-color: #ff007f; box-shadow: 0 0 20px rgba(255, 0, 127, 0.3); }
+        textarea { resize: vertical; height: 110px; }
+
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; width: 100%;
+            padding: 16px; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 10px; text-decoration: none; margin-top: 15px; transition: all 0.3s ease;
+            box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-whatsapp:hover {
+            transform: translateY(-2px); filter: brightness(1.1);
+            box-shadow: 0 8px 35px rgba(16, 185, 129, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="img/logo.webp" alt="Logo">
+            <span>Digital Store</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a onclick="cambiarVista('catalog')" class="active" id="nav-catalog">🔥 Productos</a></li>
+                <li><a onclick="cambiarVista('soporte')" id="nav-soporte">💬 Soporte / Reporte</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- VISTA CATÁLOGO -->
+        <div id="catalog-view" class="view active">
+            <div class="hero-banner">
+                <h1>⚡ Cuentas y Servicios Digitales ⚡</h1>
+                <p>Disfruta de tus plataformas favoritas con garantía total, entrega inmediata y la mejor atención.</p>
+            </div>
+            <h2 style="margin-bottom: 25px; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">Catálogo Disponible</h2>
+            <div class="catalog-grid" id="catalog-grid"></div>
+        </div>
+
+        <!-- VISTA DETALLE -->
+        <div id="detail-view" class="view">
+            <a class="back-link" onclick="cambiarVista('catalog')">← Volver al catálogo</a>
+
+            <div class="product-detail-grid">
+                <div class="detail-img-box">
+                    <img id="detail-img" src="" alt="Producto">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 18px;">
+                    <span class="badge" id="detail-badge">STREAMING</span>
+                    <h1 id="detail-title" style="font-size: 28px; font-weight: 800;"></h1>
+                    <p id="detail-short-desc" style="color: var(--text-muted); font-size: 15px;"></p>
+                    
+                    <div class="price-box">
+                        <div>
+                            <span id="detail-vigencia" style="font-size: 14px; color: var(--text-muted); font-weight: 600;"></span>
+                            <div id="detail-stock-status" style="font-size: 14px; margin-top: 6px; font-weight: 700;"></div>
+                        </div>
+                        <div id="detail-price" style="font-size: 28px; font-weight: 900; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-section">
+                <h2>📋 Descripción del Producto</h2>
+                <div id="detail-full-desc"></div>
+            </div>
+
+            <!-- APARTADO DE TÉRMINOS Y CONDICIONES MEJORADO Y VISIBLE -->
+            <div class="card-section">
+                <h2>🛡️ Términos y Condiciones de la Garantía</h2>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Por favor, lee detenidamente las políticas y condiciones de uso antes de adquirir este servicio:</p>
+                <div class="terms-box" id="detail-terms"></div>
+            </div>
+
+            <div class="card-section" style="border-color: rgba(16, 185, 129, 0.5); text-align: center;">
+                <h2 style="background: none; -webkit-text-fill-color: #10b981; color: #10b981; font-size: 22px;">🚀 ¡Adquiere este producto ahora!</h2>
+                <p style="margin-bottom: 15px; color: #cbd5e1;">Haz clic en el botón para coordinar tu pago y entrega inmediata por WhatsApp.</p>
+                <button id="btn-hacer-pedido" onclick="enviarPedidoWhatsApp()" class="btn-whatsapp">
+                    🛒 Hacer Pedido de este Producto por WhatsApp
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA SOPORTE -->
+        <div id="soporte-view" class="view">
+            <h2 style="margin-bottom: 10px; font-size: 26px; font-weight: 800;">Centro de Soporte y Reportes</h2>
+            <div class="card-section" style="border-color: rgba(255, 0, 127, 0.4);">
+                <p style="margin-bottom: 15px;">Rellena el formulario; el sistema registrará tu ticket en la nube de forma automática y abrirá tu chat de WhatsApp.</p>
+                
+                <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); padding: 14px 18px; border-radius: 12px; margin-bottom: 22px;">
+                    <p style="color: #fde047; font-size: 13px; margin: 0; line-height: 1.6; font-weight: 500;">
+                        ⏱️ <strong>Tiempo estimado de soporte:</strong> De 45 minutos a 2 horas (según la saturación del servicio). El tiempo máximo de respuesta puede extenderse hasta 24 horas. ¡Agradecemos tu paciencia!
+                    </p>
+                </div>
+
+                <form onsubmit="enviarReporteWhatsApp(event)">
+                    <div class="form-group">
+                        <label for="clientName">Tu Nombre o Usuario:</label>
+                        <input type="text" id="clientName" placeholder="Ej. Carlos Mendoza" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientProduct">Producto o Servicio afectado:</label>
+                        <input type="text" id="clientProduct" placeholder="Ej. Apple Music / Netflix" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="failureReport">Descripción de la Falla:</label>
+                        <textarea id="failureReport" placeholder="Describe brevemente el inconveniente..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageUpload">Adjuntar Captura de Pantalla:</label>
+                        <input type="file" id="imageUpload" accept="image/*">
+                        <small style="color: var(--text-muted); font-size: 11px; display: block; margin-top: 6px;">* Selecciona tu captura y adjúntala directamente en el chat de WhatsApp que se abrirá.</small>
+                    </div>
+                    <button type="submit" class="btn-whatsapp">
+                        💬 Generar Ticket y Enviar Reporte
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuBQnxZoXpjOC9pfzqIslQsoFGXInhO8J8TVSUTrVWeBaeRreHVQL6dIjjPNZZneTG/exec";
+
+        const productos = [
+            {
+                id: 1,
+                titulo: "HBO Max (1 Pantalla)",
+                categoria: "STREAMING",
+                precio: "3.00 USDT",
+                vigencia: "⏳ Vigencia de 28 dias",
+                agotado: false,
+                imagen: "img/hbologo.webp",
+                descripcionCortita: "Disfruta Películas y series en la mejor calidad.",
+                descripcionLarga: `<ul><li>Disfruta películas y series en alta definición 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>Uso estrictamente personal y exclusivo para un dispositivo.</li>
+                <li>Se entrega correo y contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 2,
+                titulo: "Netflix 1 Pantalla (1 Mes) 🍿",
+                categoria: "STREAMING",
+                precio: "5.00 USDT",
+                vigencia: "⏳ Vigencia: 30 días",
+                agotado: false,
+                imagen: "img/netflix.webp",
+                descripcionCortita: "🍿 Perfil Netflix 📺 Disfruta el mejor contenido.",
+                descripcionLarga: `<ul><li>🍿 Plan Premium 4K Ultra HD 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>Uso estrictamente personal y exclusivo para un dispositivo.</li>
+                <li>Se entrega correo y contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 3,
+                titulo: "Capcut Pro (1 Dispositivo)",
+                categoria: "Video",
+                precio: "6.00 USDT",
+                vigencia: "⏳ Vigencia: 28 días",
+                agotado: false,
+                imagen: "img/capcut.webp",
+                descripcionCortita: "Sé un profesional en la Edición de videos.",
+                descripcionLarga: `<ul><li>El mejor editor de video 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>Uso estrictamente personal y exclusivo para un dispositivo.</li>
+                <li>Se entrega correo y contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 4,
+                titulo: "Canva Anual Edu (1 Dispositivo)",
+                categoria: "Edicion",
+                precio: "8.00 USDT",
+                vigencia: "⏳ Vigencia: 12 meses",
+                agotado: false,
+                imagen: "img/canva.webp",
+                descripcionCortita: "Edita, crea imágenes con plantillas profesionales.",
+                descripcionLarga: `<ul><li>Lleva la edición al siguiente nivel 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente 6 meses.</li>
+                <li>Activación es recibida a través de correo electrónico.</li>
+                <li>Uso estrictamente personal y exclusivo para un dispositivo.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 5,
+                titulo: "Disney plus (1 Dispositivo)",
+                categoria: "Edicion",
+                precio: "3.50 USDT",
+                vigencia: "⏳ Vigencia: 28 dias",
+                agotado: false,
+                imagen: "img/disneyplus.webp",
+                descripcionCortita: "Disfruta el mejor contenido de Disney",
+                descripcionLarga: `<ul><li>Películas, series y el mejor contenido 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>Activación es recibida a través de correo electrónico.</li>
+                <li>Uso estrictamente personal y exclusivo para un dispositivo.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 6,
+                titulo: "Flujo TV (3 Dispositivos)",
+                categoria: "STREAMING",
+                precio: "4.00 USDT",
+                vigencia: "⏳ Vigencia: 30 dias",
+                agotado: false,
+                imagen: "img/flujotv.webp",
+                descripcionCortita: "Disfruta canales en vivo, películas y series.",
+                descripcionLarga: `<ul><li>Canales en vivo, películas, series 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>Su uso es para 3 dispositivos simultáneos.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>Solo para sistemas Android y Android TV.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 7,
+                titulo: "Tele latino (3 Dispositivos)",
+                categoria: "STREAMING",
+                precio: "4.00 USDT",
+                vigencia: "⏳ Vigencia: 30 dias",
+                agotado: false,
+                imagen: "img/telelatino.webp",
+                descripcionCortita: "Disfruta canales en vivo, películas y series.",
+                descripcionLarga: `<ul><li>Canales en vivo, películas, series 🚀</li><li>📺 Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>Su uso es para 3 dispositivos simultáneos.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>Solo para sistemas Android y Android TV.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 8,
+                titulo: "Leonardo AI (1 Dispositivo)",
+                categoria: "Edicion",
+                precio: "3.50 USDT",
+                vigencia: "⏳ Vigencia: 30 dias",
+                agotado: false,
+                imagen: "img/leonardo.webp",
+                descripcionCortita: "Generador de Imágenes con IA.",
+                descripcionLarga: `<ul><li>Editor de imágenes profesional 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>Su uso es para 1 dispositivo.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 9,
+                titulo: "NBA premium Pass (1 Dispositivo)",
+                categoria: "STREAMING",
+                precio: "3.00 USDT",
+                vigencia: "⏳ Vigencia: 30 dias",
+                agotado: false,
+                imagen: "img/nba.webp",
+                descripcionCortita: "Partidos en vivo y repeticiones de la NBA.",
+                descripcionLarga: `<ul><li>Los mejores partidos de la NBA 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>Su uso es para 1 dispositivo.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 10,
+                titulo: "Office 365 (3 Dispositivos)",
+                categoria: "OFIMATICA",
+                precio: "5.00 USDT",
+                vigencia: "⏳ Vigencia: 12 meses",
+                agotado: false,
+                imagen: "img/office365.webp",
+                descripcionCortita: "Word, Excel y almacenamiento en la nube (OneDrive).",
+                descripcionLarga: `<ul><li>Suite completa de Office y nube 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente 3 meses.</li>
+                <li>Su uso es para 3 dispositivos.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 11,
+                titulo: "Amazon Prime Video (1 Dispositivo)",
+                categoria: "STREAMING",
+                precio: "3.00 USDT",
+                vigencia: "⏳ Vigencia: 28 dias",
+                agotado: false,
+                imagen: "img/primevideo.webp",
+                descripcionCortita: "El mejor contenido de Amazon Video.",
+                descripcionLarga: `<ul><li>Disfruta películas y series 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente 28 días.</li>
+                <li>Su uso es para 1 dispositivo.</li>
+                <li>Contenido limitado de películas y series.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 12,
+                titulo: "UFC fight pass (1 Dispositivo)",
+                categoria: "STREAMING",
+                precio: "3.00 USDT",
+                vigencia: "⏳ Vigencia: 28 dias",
+                agotado: false,
+                imagen: "img/ufc.webp",
+                descripcionCortita: "Carteleras preliminares y combates en vivo.",
+                descripcionLarga: `<ul><li>UFC Fight Pass en vivo 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente 28 días.</li>
+                <li>Su uso es para 1 dispositivo.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 13,
+                titulo: "VIX premium (1 Dispositivo)",
+                categoria: "STREAMING",
+                precio: "3.00 USDT",
+                vigencia: "⏳ Vigencia: 28 dias",
+                agotado: false,
+                imagen: "img/vix.webp",
+                descripcionCortita: "Disfruta la liga española, películas y series.",
+                descripcionLarga: `<ul><li>La Liga Española, películas y series 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente 28 días.</li>
+                <li>Su uso es para 1 dispositivo.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 14,
+                titulo: "Avg Ultimate (1 Dispositivo Anual)",
+                categoria: "OFIMATICA",
+                precio: "6.00 USDT",
+                vigencia: "⏳ Vigencia: 12 meses",
+                agotado: false,
+                imagen: "img/avgultimate.webp",
+                descripcionCortita: "Protección antivirus avanzada.",
+                descripcionLarga: `<ul><li>Protección antivirus total 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente 6 meses.</li>
+                <li>Su uso es para 1 dispositivo.</li>
+                <li>Se entrega usuario y contraseña.</li>
+                <li>No está permitido cambiar el correo ni la contraseña.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 15,
+                titulo: "Diamantes Free Fire (100 + 10 extra)",
+                categoria: "GAMING",
+                precio: "1.75 USDT",
+                vigencia: "⏳ Recarga directa",
+                agotado: false,
+                imagen: "img/freefire.webp",
+                descripcionCortita: "Recarga de diamantes para Free Fire.",
+                descripcionLarga: `<ul><li>100 Diamantes + 10 extra 🚀</li><li>Entrega rápida y segura 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                </ol>`
+            },
+            {
+                id: 16,
+                titulo: "Gemini Pro (12 meses)",
+                categoria: "EDICION",
+                precio: "3.50 USDT",
+                vigencia: "⏳ Vigencia: 12 meses",
+                agotado: false,
+                imagen: "img/Geminipro.webp",
+                descripcionCortita: "Crea y edita con Inteligencia Artificial.",
+                descripcionLarga: `<ul><li>Incluye almacenamiento avanzado 🚀</li><li>Garantía total 🛡️</li></ul>`,
+                terminos: `<ol style="padding-left: 18px; margin: 0;">
+                <li>La garantía cubre únicamente la vigencia estipulada.</li>
+                <li>No se realizan reembolsos ni devoluciones bajo ninguna circunstancia.</li>
+                <li>Se recibe link de activación.</li>
+                </ol>`
+            }
+        ];
+
+        let productoSeleccionadoActual = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const grid = document.getElementById("catalog-grid");
+            grid.innerHTML = "";
+            productos.forEach(prod => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <img src="${prod.imagen}" alt="${prod.titulo}">
+                        <span class="badge">${prod.categoria}</span>
+                        <h3>${prod.titulo}</h3>
+                        <div class="price">${prod.precio}</div>
+                        <button class="btn-gradient" onclick="verDetalle(${prod.id})">Ver producto</button>
+                    </div>
+                `;
+            });
+        });
+
+        function verDetalle(id) {
+            const prod = productos.find(p => p.id === id);
+            if (!prod) return;
+            productoSeleccionadoActual = prod.titulo;
+            document.getElementById("detail-img").src = prod.imagen;
+            document.getElementById("detail-badge").innerText = prod.categoria;
+            document.getElementById("detail-title").innerText = prod.titulo;
+            document.getElementById("detail-short-desc").innerText = prod.descripcionCortita;
+            document.getElementById("detail-vigencia").innerText = prod.vigencia;
+            document.getElementById("detail-price").innerText = prod.precio;
+            document.getElementById("detail-full-desc").innerHTML = prod.descripcionLarga || "<ul><li>Garantía total 🛡️</li></ul>";
+            document.getElementById("detail-terms").innerHTML = prod.terminos;
+
+            const stockDiv = document.getElementById("detail-stock-status");
+            const botonPedido = document.getElementById("btn-hacer-pedido");
+
+            if (prod.agotado) {
+                stockDiv.innerHTML = "● Agotado temporalmente";
+                stockDiv.style.color = "var(--danger-color)";
+                botonPedido.innerText = "❌ Producto Agotado";
+                botonPedido.style.background = "#4b5563";
+                botonPedido.style.pointerEvents = "none";
+                botonPedido.style.boxShadow = "none";
+            } else {
+                stockDiv.innerHTML = "● Disponible en Stock";
+                stockDiv.style.color = "var(--success-color)";
+                botonPedido.innerText = "🛒 Hacer Pedido por WhatsApp";
+                botonPedido.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                botonPedido.style.pointerEvents = "auto";
+                botonPedido.style.boxShadow = "0 4px 25px rgba(16, 185, 129, 0.4)";
+            }
+
+            cambiarVista('detail');
+        }
+
+        function cambiarVista(vista) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            if (vista === 'catalog') {
+                document.getElementById('catalog-view').classList.add('active');
+                document.getElementById('nav-catalog').classList.add('active');
+            } else if (vista === 'detail') {
+                document.getElementById('detail-view').classList.add('active');
+            } else if (vista === 'soporte') {
+                document.getElementById('soporte-view').classList.add('active');
+                document.getElementById('nav-soporte').classList.add('active');
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function enviarPedidoWhatsApp() {
+            const numeroAdmin = "50372946411";
+            let mensaje = `*¡NUEVO PEDIDO!*%0A🛍️ *Producto deseado:* ${encodeURIComponent(productoSeleccionadoActual)}%0AHola, estoy interesado en adquirir este producto. ¿Me das instrucciones para el pago?`;
+            window.open(`https://wa.me/${numeroAdmin}?text=${mensaje}`, '_blank');
+        }
+
+        async function enviarReporteWhatsApp(event) {
+            event.preventDefault();
+            const name = document.getElementById('clientName').value.trim();
+            const prod = document.getElementById('clientProduct').value.trim();
+            const report = document.getElementById('failureReport').value.trim();
+            const numeroAdmin = "50372946411";
+
+            const ticketNum = "REP-" + Math.floor(1000 + Math.random() * 9000);
+            const nuevoReporte = {
+                type: "guardarReporte",
+                pass: "MiClaveSecreta123", // Llave validada en Google Apps Script
+                ticket: ticketNum,
+                cliente: name,
+                producto: prod,
+                descripcion: report,
+                fecha: new Date().toLocaleDateString(),
+                estado: "Pendiente",
+                correoReemplazo: "-",
+                passReemplazo: "-"
+            };
+
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(nuevoReporte)
+            });
+
+            let mensaje = `*🚨 NUEVO REPORTE DE FALLA*%0A🎫 *Ticket:* ${ticketNum}%0A👤 *Cliente:* ${encodeURIComponent(name)}%0A📦 *Producto:* ${encodeURIComponent(prod)}%0A⚠️ *Inconveniente:* ${encodeURIComponent(report)}%0A📷 *(Adjunto captura de pantalla en el chat)*`;
+            
+            alert(`¡Ticket generado exitosamente: ${ticketNum}!`);
+            window.open(`https://wa.me/${numeroAdmin}?text=${mensaje}`, '_blank');
+            
+            document.getElementById('clientName').value = "";
+            document.getElementById('clientProduct').value = "";
+            document.getElementById('failureReport').value = "";
+            document.getElementById('imageUpload').value = "";
+        }
+    </script>
+</body>
+</html>

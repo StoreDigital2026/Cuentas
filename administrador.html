@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Seguro</title>
+    <style>
+        :root {
+            --bg-color: #0b0b0f;
+            --card-bg: #14141a;
+            --border-color: #272733;
+            --accent-color: #3b82f6;
+            --success-color: #25D366;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; padding: 20px; }
+
+        #auth-screen {
+            max-width: 400px; margin: 100px auto; background: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        #admin-panel { display: none; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+        header {
+            display: flex; justify-content: space-between; align-items: center; background: var(--card-bg);
+            padding: 15px 25px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 25px;
+        }
+        .back-link { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+        .back-link:hover { color: var(--text-main); }
+        .grid-admin { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 768px) { .grid-admin { grid-template-columns: 1fr; } }
+        .card-section {
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px;
+            padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 25px;
+        }
+        .card-section h2 { font-size: 18px; margin-bottom: 10px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .card-section p { font-size: 13px; color: var(--text-muted); margin-bottom: 15px; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 12px; margin-bottom: 5px; color: var(--text-muted); }
+        input[type="text"], input[type="password"], input[type="date"], select {
+            width: 100%; padding: 10px 12px; background: #0b0b0f; border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-main); font-size: 13px;
+        }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            background-color: var(--accent-color); color: white; border: none; flex: 1; padding: 12px;
+            border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: 6px; text-decoration: none; transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-whatsapp { background-color: var(--success-color); }
+        .btn-secondary { background-color: #4b5563; }
+        .btn-warning { background-color: var(--warning-color); color: #000; width: 100%; }
+        .full-width { grid-column: 1 / -1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { color: var(--text-muted); font-weight: 600; background: rgba(255,255,255,0.02); }
+        td { color: var(--text-main); }
+        .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-sm { padding: 6px 10px; font-size: 11px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-wa-sm { background-color: var(--success-color); color: white; }
+        .btn-warn-sm { background-color: var(--warning-color); color: #000; }
+        .btn-del-sm { background-color: var(--danger-color); color: white; }
+        .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .status-pendiente { background: rgba(245, 158, 11, 0.2); color: var(--warning-color); border: 1px solid var(--warning-color); }
+        .status-reemplazado { background: rgba(37, 211, 102, 0.2); color: var(--success-color); border: 1px solid var(--success-color); }
+    </style>
+</head>
+<body>
+
+<div id="auth-screen">
+    <h2 style="margin-bottom: 15px; color: var(--accent-color);">🔒 Acceso Restringido</h2>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Introduce tu contraseña maestra para administrar las credenciales.</p>
+    <div class="form-group">
+        <input type="password" id="adminPassInput" placeholder="Contraseña maestra">
+    </div>
+    <button class="btn" onclick="verificarPassword()">Ingresar al Panel</button>
+</div>
+
+<div class="container" id="admin-panel">
+    <header>
+        <span style="font-weight: bold; font-size: 16px;">🔐 Panel Seguro (Google Sheets)</span>
+        <div>
+            <a onclick="cerrarSesion()" class="back-link" style="margin-right: 15px; cursor:pointer; color: var(--danger-color);">Cerrar Sesión</a>
+            <a href="index.html" class="back-link">← Ir a la Tienda</a>
+        </div>
+    </header>
+
+    <div class="grid-admin">
+        <div class="card-section">
+            <h2>Gestión de Cuentas Vendidas</h2>
+            <p>Agrega cuentas al sistema de forma manual.</p>
+            <form id="cuentaForm">
+                <div class="form-group">
+                    <label>WhatsApp del Cliente (con código país, sin +):</label>
+                    <input type="text" id="clientPhone" placeholder="Ej. 50371234567" required>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del Cliente:</label>
+                    <input type="text" id="clientName" placeholder="Ej. Juan Pérez" required>
+                </div>
+                <div class="form-group">
+                    <label>Producto Vendido:</label>
+                    <select id="productSelect" required>
+                        <option value="HBO Max (1 Pantalla)">HBO Max (1 Pantalla)</option>
+                        <option value="Netflix 1 Pantalla (1 Mes)">Netflix 1 Pantalla (1 Mes)</option>
+                        <option value="Capcut Pro (1 Dispositivo)">Capcut Pro (1 Dispositivo)</option>
+                        <option value="Canva Anual Edu (1 Dispositivo)">Canva Anual Edu (1 Dispositivo)</option>
+                        <option value="Disney plus (1 Dispositivo)">Disney plus (1 Dispositivo)</option>
+                        <option value="Flujo TV (3 Dispositivos)">Flujo TV (3 Dispositivos)</option>
+                        <option value="Tele latino (3 Dispositivos)">Tele latino (3 Dispositivos)</option>
+                        <option value="Leonardo AI (1 Dispositivo)">Leonardo AI (1 Dispositivo)</option>
+                        <option value="NBA premium Pass (1 Dispositivo)">NBA premium Pass (1 Dispositivo)</option>
+                        <option value="Office 365 (3 Dispositivos)">Office 365 (3 Dispositivos)</option>
+                        <option value="Amazon Prime Video (1 Dispositivo)">Amazon Prime Video (1 Dispositivo)</option>
+                        <option value="UFC fight pass (1 Dispositivo)">UFC fight pass (1 Dispositivo)</option>
+                        <option value="VIX premium (1 Dispositivo)">VIX premium (1 Dispositivo)</option>
+                        <option value="Avg Ultimate (1 Dispositivo Anual)">Avg Ultimate (1 Dispositivo Anual)</option>
+                        <option value="Diamantes Free Fire (100 + 10 extra)">Diamantes Free Fire (100 + 10 extra)</option>
+                        <option value="Gemini Pro (12 meses)">Gemini Pro (12 meses)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Correo / Usuario:</label>
+                    <input type="text" id="accountEmail" placeholder="correo@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="text" id="accountPass" placeholder="Contraseña" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha de Vencimiento:</label>
+                    <input type="date" id="expirationDate" required>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="guardarCuenta(false)">💾 Solo Guardar</button>
+                    <button type="button" class="btn btn-whatsapp" onclick="guardarCuenta(true)">🚀 Guardar y WhatsApp</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-section">
+            <h2>Procesar Reemplazo de Falla</h2>
+            <p>Introduce el número de ticket reportado por el cliente.</p>
+            <form onsubmit="procesarReemplazo(event)">
+                <div class="form-group">
+                    <label>Número de Ticket (Ej. REP-1234):</label>
+                    <input type="text" id="ticketInput" placeholder="REP-XXXX" required>
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp del Cliente a Notificar:</label>
+                    <input type="text" id="repPhone" placeholder="Ej. 50371234567" required>
+                </div>
+                <div class="form-group">
+                    <label>Nuevo Correo / Usuario de Reemplazo:</label>
+                    <input type="text" id="repEmail" placeholder="nuevocorreo@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña de Reemplazo:</label>
+                    <input type="text" id="repPass" placeholder="Nueva contraseña" required>
+                </div>
+                <button type="submit" class="btn btn-warning" style="margin-top: 15px;">
+                    🔄 Entregar Reemplazo y Notificar WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-section full-width">
+        <h2>Historial de Cuentas Vendidas (Alertas de Vencimiento)</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>WhatsApp</th>
+                        <th>Producto</th>
+                        <th>Correo / Usuario</th>
+                        <th>Vencimiento</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaCuentas"><tr><td colspan="6" style="text-align: center;">Cargando...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-section full-width">
+        <h2>Reportes de Fallas Automáticos (Tickets en la Nube)</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Cliente</th>
+                        <th>Producto / Inconveniente</th>
+                        <th>Estado</th>
+                        <th>Cuenta Reemplazo Asignada</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaReportes"><tr><td colspan="6" style="text-align: center;">Cargando...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzuBQnxZoXpjOC9pfzqIslQsoFGXInhO8J8TVSUTrVWeBaeRreHVQL6dIjjPNZZneTG/exec";
+    let passwordActual = "";
+
+    async function verificarPassword() {
+        const pass = document.getElementById('adminPassInput').value;
+        
+        try {
+            const res = await fetch(`${WEB_APP_URL}?action=getCuentas&pass=${encodeURIComponent(pass)}`);
+            const data = await res.json();
+            
+            if (data.error) {
+                alert("Contraseña incorrecta.");
+                return;
+            }
+
+            passwordActual = pass;
+            sessionStorage.setItem('pass_segura', pass);
+            
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            cargarDatos();
+        } catch (e) {
+            alert("Error al conectar con la base de datos.");
+        }
+    }
+
+    function cerrarSesion() {
+        sessionStorage.removeItem('pass_segura');
+        location.reload();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedPass = sessionStorage.getItem('pass_segura');
+        if (savedPass) {
+            passwordActual = savedPass;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            cargarDatos();
+        }
+    });
+
+    async function cargarDatos() {
+        await actualizarTablaCuentas();
+        await actualizarTablaReportes();
+    }
+
+    async function guardarCuenta(enviarWhatsApp) {
+        const telefono = document.getElementById('clientPhone').value.trim();
+        const nombre = document.getElementById('clientName').value.trim();
+        const producto = document.getElementById('productSelect').value;
+        const correo = document.getElementById('accountEmail').value.trim();
+        const pass = document.getElementById('accountPass').value.trim();
+        const vencimiento = document.getElementById('expirationDate').value.trim();
+
+        if (!telefono || !nombre || !correo || !pass || !vencimiento) {
+            alert("Completa todos los campos.");
+            return;
+        }
+
+        const nuevaCuenta = {
+            type: "guardarCuenta",
+            pass: passwordActual,
+            id: Date.now(),
+            telefono, nombre, producto, correo, pass, vencimiento
+        };
+
+        await fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(nuevaCuenta)
+        });
+
+        alert("¡Guardado correctamente en Google Sheets!");
+        document.getElementById('cuentaForm').reset();
+
+        if (enviarWhatsApp) {
+            let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! 👋 Aquí tienes tu cuenta:%0A📦 *Producto:* ${encodeURIComponent(producto)}%0A📧 *Correo:* \`${encodeURIComponent(correo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(pass)}\`%0A⏳ *Vence:* ${encodeURIComponent(vencimiento)}`;
+            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+        }
+        setTimeout(cargarDatos, 1500);
+    }
+
+    function enviarRecordatorio(nombre, producto, vencimiento, telefono) {
+        let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! Te saludamos de Digital Store para recordarte que tu cuenta de *${encodeURIComponent(producto)}* está próxima a vencer el *${encodeURIComponent(vencimiento)}*. ¿Deseas renovar tu servicio? 🔄`;
+        window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+    }
+
+    async function eliminarCuenta(id) {
+        if (confirm("¿Estás seguro de eliminar este registro de Google Sheets?")) {
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "eliminarCuenta", pass: passwordActual, id: id })
+            });
+            alert("Cuenta eliminada correctamente.");
+            setTimeout(cargarDatos, 1500);
+        }
+    }
+
+    async function actualizarTablaCuentas() {
+        const res = await fetch(`${WEB_APP_URL}?action=getCuentas&pass=${encodeURIComponent(passwordActual)}`);
+        const cuentas = await res.json();
+        const tbody = document.getElementById('tablaCuentas');
+        tbody.innerHTML = "";
+
+        if (cuentas.error || cuentas.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 15px;">No hay cuentas registradas.</td></tr>`;
+            return;
+        }
+
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        cuentas.forEach(c => {
+            const fechaVenc = new Date(c.vencimiento + 'T00:00:00');
+            fechaVenc.setHours(0, 0, 0, 0);
+            const diasRestantes = Math.round((fechaVenc.getTime() - hoy.getTime()) / (1000 * 3600 * 24));
+
+            let estiloFila = "";
+            let etiquetaEstado = c.vencimiento;
+            let botonRecordatorio = "";
+
+            if (diasRestantes <= 3) {
+                estiloFila = "background-color: rgba(239, 68, 68, 0.15); border-left: 4px solid var(--danger-color);";
+                if (diasRestantes < 0) {
+                    etiquetaEstado += ` <span style="color: var(--danger-color); font-weight: bold;">(Vencido)</span>`;
+                } else {
+                    etiquetaEstado += ` <span style="color: var(--danger-color); font-weight: bold;">(¡Vence en ${diasRestantes}d!)</span>`;
+                }
+                botonRecordatorio = `<button class="btn-sm btn-warn-sm" onclick="enviarRecordatorio('${c.nombre}', '${c.producto}', '${c.vencimiento}', '${c.telefono}')">🔔 Recordar</button>`;
+            }
+
+            tbody.innerHTML += `
+                <tr style="${estiloFila}">
+                    <td><strong>${c.nombre}</strong></td>
+                    <td>${c.telefono}</td>
+                    <td>${c.producto}</td>
+                    <td><code>${c.correo}</code></td>
+                    <td>${etiquetaEstado}</td>
+                    <td>
+                        <div class="actions-cell">
+                            ${botonRecordatorio}
+                            <button class="btn-sm btn-del-sm" onclick="eliminarCuenta('${c.id}')">Eliminar</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function procesarReemplazo(event) {
+        event.preventDefault();
+        const ticketBuscado = document.getElementById('ticketInput').value.trim();
+        const telefono = document.getElementById('repPhone').value.trim();
+        const nuevoCorreo = document.getElementById('repEmail').value.trim();
+        const nuevaPass = document.getElementById('repPass').value.trim();
+
+        await fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                type: "actualizarReporte",
+                pass: passwordActual,
+                ticket: ticketBuscado,
+                correoReemplazo: nuevoCorreo,
+                passReemplazo: nuevaPass
+            })
+        });
+
+        let mensaje = `¡Hola! 👋 Cuenta de reemplazo para el ticket *${ticketBuscado}*:%0A📧 *Correo:* \`${encodeURIComponent(nuevoCorreo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(nuevaPass)}\``;
+        window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+
+        document.getElementById('ticketInput').value = "";
+        document.getElementById('repPhone').value = "";
+        document.getElementById('repEmail').value = "";
+        document.getElementById('repPass').value = "";
+        alert("¡Reemplazo registrado en Google Sheets!");
+        setTimeout(cargarDatos, 1500);
+    }
+
+    async function eliminarReporte(ticket) {
+        if (confirm("¿Estás seguro de eliminar este ticket de Google Sheets?")) {
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "eliminarReporte", pass: passwordActual, ticket: ticket })
+            });
+            alert("Ticket eliminado correctamente.");
+            setTimeout(cargarDatos, 1500);
+        }
+    }
+
+    async function actualizarTablaReportes() {
+        const res = await fetch(`${WEB_APP_URL}?action=getReportes&pass=${encodeURIComponent(passwordActual)}`);
+        const reportes = await res.json();
+        const tbody = document.getElementById('tablaReportes');
+        tbody.innerHTML = "";
+
+        if (reportes.error || reportes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 15px;">No hay reportes.</td></tr>`;
+            return;
+        }
+
+        reportes.forEach(r => {
+            let badgeClass = r.estado === "Reemplazado" ? "status-reemplazado" : "status-pendiente";
+            let datosReemplazo = r.estado === "Reemplazado" ? `<code>${r.correoReemplazo}</code>` : `<span style="color:var(--text-muted);">Pendiente</span>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${r.ticket}</strong><br><small style="color:var(--text-muted);">${r.fecha}</small></td>
+                    <td>${r.cliente}</td>
+                    <td><strong>${r.producto}</strong><br><small style="color:var(--text-muted);">${r.descripcion}</small></td>
+                    <td><span class="badge-status ${badgeClass}">${r.estado}</span></td>
+                    <td>${datosReemplazo}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="btn-sm btn-del-sm" onclick="eliminarReporte('${r.ticket}')">Eliminar</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+</script>
+
+</body>
+</html>
