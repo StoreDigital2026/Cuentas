@@ -276,13 +276,7 @@
         const urlCompleta = `${WEB_APP_URL}?action=guardarCuenta&pass=${encodeURIComponent(passwordActual)}&id=${idUnico}&telefono=${encodeURIComponent(telefonoFinal)}&nombre=${encodeURIComponent(nombre)}&producto=${encodeURIComponent(producto)}&correo=${encodeURIComponent(correo)}&passAcceso=${encodeURIComponent(pass)}&vencimiento=${encodeURIComponent(vencimiento)}`;
 
         try {
-            const respuesta = await fetch(urlCompleta);
-            const resultado = await respuesta.json();
-
-            if (resultado.error) {
-                alert("Error del servidor: " + resultado.error);
-                return;
-            }
+            fetch(urlCompleta);
 
             alert("¡Guardado correctamente en Google Sheets!");
             document.getElementById('cuentaForm').reset();
@@ -296,10 +290,12 @@
                 }
             }
             
-            await cargarDatos();
+            setTimeout(() => {
+                cargarDatos();
+            }, 1500);
 
         } catch (e) {
-            alert("Error de conexión al intentar guardar en la nube.");
+            alert("Error al intentar conectar con la nube.");
         }
     }
 
@@ -315,7 +311,7 @@
     async function eliminarCuenta(id) {
         if (confirm("¿Estás seguro de eliminar este registro de Google Sheets?")) {
             const urlEliminar = `${WEB_APP_URL}?action=eliminarCuenta&pass=${encodeURIComponent(passwordActual)}&id=${id}`;
-            await fetch(urlEliminar);
+            fetch(urlEliminar);
             alert("Cuenta eliminada correctamente.");
             setTimeout(cargarDatos, 1500);
         }
@@ -383,7 +379,7 @@
         const nuevaPass = document.getElementById('repPass').value.trim();
 
         const urlReemplazo = `${WEB_APP_URL}?action=actualizarReporte&pass=${encodeURIComponent(passwordActual)}&ticket=${encodeURIComponent(ticketBuscado)}&correoReemplazo=${encodeURIComponent(nuevoCorreo)}&passReemplazo=${encodeURIComponent(nuevaPass)}`;
-        await fetch(urlReemplazo);
+        fetch(urlReemplazo);
 
         let mensaje = `¡Hola! 👋 Cuenta de reemplazo para el ticket *${ticketBuscado}*:%0A📧 *Correo:* \`${encodeURIComponent(nuevoCorreo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(nuevaPass)}\``;
         window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
@@ -399,7 +395,7 @@
     async function eliminarReporte(ticket) {
         if (confirm("¿Estás seguro de eliminar este ticket de Google Sheets?")) {
             const urlDelRep = `${WEB_APP_URL}?action=eliminarReporte&pass=${encodeURIComponent(passwordActual)}&ticket=${encodeURIComponent(ticket)}`;
-            await fetch(urlDelRep);
+            fetch(urlDelRep);
             alert("Ticket eliminado correctamente.");
             setTimeout(cargarDatos, 1500);
         }
