@@ -265,45 +265,33 @@
         const pass = document.getElementById('accountPass').value.trim();
         const vencimiento = document.getElementById('expirationDate').value.trim();
 
-        // Validamos únicamente los campos obligatorios
         if (!nombre || !correo || !pass || !vencimiento) {
-            alert("Por favor completa los campos obligatorios (Nombre, Correo, Contraseña y Vencimiento).");
+            alert("Por favor completa los campos obligatorios.");
             return;
         }
 
         const telefonoFinal = telefonoInput !== "" ? telefonoInput : "Sin WhatsApp";
+        const idUnico = Date.now();
 
-        const nuevaCuenta = {
-            type: "guardarCuenta",
-            pass: passwordActual,
-            id: Date.now(),
-            telefono: telefonoFinal,
-            nombre,
-            producto,
-            correo,
-            pass,
-            vencimiento
-        };
+        const urlCompleta = `${WEB_APP_URL}?action=guardarCuenta&pass=${encodeURIComponent(passwordActual)}&id=${idUnico}&telefono=${encodeURIComponent(telefonoFinal)}&nombre=${encodeURIComponent(nombre)}&producto=${encodeURIComponent(producto)}&correo=${encodeURIComponent(correo)}&passAcceso=${encodeURIComponent(pass)}&vencimiento=${encodeURIComponent(vencimiento)}`;
 
-        await fetch(WEB_APP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(nuevaCuenta)
-        });
+        try {
+            await fetch(urlCompleta);
+            alert("¡Guardado correctamente en Google Sheets!");
+            document.getElementById('cuentaForm').reset();
 
-        alert("¡Guardado correctamente en Google Sheets!");
-        document.getElementById('cuentaForm').reset();
-
-        if (enviarWhatsApp) {
-            if (telefonoInput === "") {
-                alert("La cuenta se guardó correctamente, pero no se abrió WhatsApp porque no ingresaste un número de teléfono.");
-            } else {
-                let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! 👋 Aquí tienes tu cuenta:%0A📦 *Producto:* ${encodeURIComponent(producto)}%0A📧 *Correo:* \`${encodeURIComponent(correo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(pass)}\`%0A⏳ *Vence:* ${encodeURIComponent(vencimiento)}`;
-                window.open(`https://wa.me/${telefonoInput}?text=${mensaje}`, '_blank');
+            if (enviarWhatsApp) {
+                if (telefonoInput === "") {
+                    alert("Guardado, pero no se abrió WhatsApp porque no ingresaste número.");
+                } else {
+                    let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! 👋 Aquí tienes tu cuenta:%0A📦 *Producto:* ${encodeURIComponent(producto)}%0A📧 *Correo:* \`${encodeURIComponent(correo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(pass)}\`%0A⏳ *Vence:* ${encodeURIComponent(vencimiento)}`;
+                    window.open(`https://wa.me/${telefonoInput}?text=${mensaje}`, '_blank');
+                }
             }
+            setTimeout(cargarDatos, 1500);
+        } catch (e) {
+            alert("Error al guardar en la nube.");
         }
-        setTimeout(cargarDatos, 1500);
     }
 
     function enviarRecordatorio(nombre, producto, vencimiento, telefono) {
@@ -317,12 +305,8 @@
 
     async function eliminarCuenta(id) {
         if (confirm("¿Estás seguro de eliminar este registro de Google Sheets?")) {
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "eliminarCuenta", pass: passwordActual, id: id })
-            });
+            const urlEliminar = `${WEB_APP_URL}?action=eliminarCuenta&pass=${encodeURIComponent(passwordActual)}&id=${id}`;
+            await fetch(urlEliminar);
             alert("Cuenta eliminada correctamente.");
             setTimeout(cargarDatos, 1500);
         }
@@ -389,18 +373,8 @@
         const nuevoCorreo = document.getElementById('repEmail').value.trim();
         const nuevaPass = document.getElementById('repPass').value.trim();
 
-        await fetch(WEB_APP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                type: "actualizarReporte",
-                pass: passwordActual,
-                ticket: ticketBuscado,
-                correoReemplazo: nuevoCorreo,
-                passReemplazo: nuevaPass
-            })
-        });
+        const urlReemplazo = `${WEB_APP_URL}?action=actualizarReporte&pass=${encodeURIComponent(passwordActual)}&ticket=${encodeURIComponent(ticketBuscado)}&correoReemplazo=${encodeURIComponent(nuevoCorreo)}&passReemplazo=${encodeURIComponent(nuevaPass)}`;
+        await fetch(urlReemplazo);
 
         let mensaje = `¡Hola! 👋 Cuenta de reemplazo para el ticket *${ticketBuscado}*:%0A📧 *Correo:* \`${encodeURIComponent(nuevoCorreo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(nuevaPass)}\``;
         window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
@@ -415,12 +389,8 @@
 
     async function eliminarReporte(ticket) {
         if (confirm("¿Estás seguro de eliminar este ticket de Google Sheets?")) {
-            await fetch(WEB_APP_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "eliminarReporte", pass: passwordActual, ticket: ticket })
-            });
+            const urlDelRep = `${WEB_APP_URL}?action=eliminarReporte&pass=${encodeURIComponent(passwordActual)}&ticket=${encodeURIComponent(ticket)}`;
+            await fetch(urlDelRep);
             alert("Ticket eliminado correctamente.");
             setTimeout(cargarDatos, 1500);
         }
