@@ -97,8 +97,8 @@
             <p>Agrega cuentas al sistema de forma manual.</p>
             <form id="cuentaForm">
                 <div class="form-group">
-                    <label>WhatsApp del Cliente (con código país, sin +):</label>
-                    <<input type="text" id="clientPhone" placeholder="Ej. 50371234567">
+                    <label>WhatsApp del Cliente (Opcional):</label>
+                    <input type="text" id="clientPhone" placeholder="Ej. 50371234567">
                 </div>
                 <div class="form-group">
                     <label>Nombre del Cliente:</label>
@@ -258,23 +258,31 @@
     }
 
     async function guardarCuenta(enviarWhatsApp) {
-        const telefono = document.getElementById('clientPhone').value.trim();
+        const telefonoInput = document.getElementById('clientPhone').value.trim();
         const nombre = document.getElementById('clientName').value.trim();
         const producto = document.getElementById('productSelect').value;
         const correo = document.getElementById('accountEmail').value.trim();
         const pass = document.getElementById('accountPass').value.trim();
         const vencimiento = document.getElementById('expirationDate').value.trim();
 
-        if (!telefono || !nombre || !correo || !pass || !vencimiento) {
-            alert("Completa todos los campos.");
+        // Validamos únicamente los campos obligatorios
+        if (!nombre || !correo || !pass || !vencimiento) {
+            alert("Por favor completa los campos obligatorios (Nombre, Correo, Contraseña y Vencimiento).");
             return;
         }
+
+        const telefonoFinal = telefonoInput !== "" ? telefonoInput : "Sin WhatsApp";
 
         const nuevaCuenta = {
             type: "guardarCuenta",
             pass: passwordActual,
             id: Date.now(),
-            telefono, nombre, producto, correo, pass, vencimiento
+            telefono: telefonoFinal,
+            nombre,
+            producto,
+            correo,
+            pass,
+            vencimiento
         };
 
         await fetch(WEB_APP_URL, {
@@ -288,13 +296,21 @@
         document.getElementById('cuentaForm').reset();
 
         if (enviarWhatsApp) {
-            let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! 👋 Aquí tienes tu cuenta:%0A📦 *Producto:* ${encodeURIComponent(producto)}%0A📧 *Correo:* \`${encodeURIComponent(correo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(pass)}\`%0A⏳ *Vence:* ${encodeURIComponent(vencimiento)}`;
-            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+            if (telefonoInput === "") {
+                alert("La cuenta se guardó correctamente, pero no se abrió WhatsApp porque no ingresaste un número de teléfono.");
+            } else {
+                let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! 👋 Aquí tienes tu cuenta:%0A📦 *Producto:* ${encodeURIComponent(producto)}%0A📧 *Correo:* \`${encodeURIComponent(correo)}\`%0A🔑 *Pass:* \`${encodeURIComponent(pass)}\`%0A⏳ *Vence:* ${encodeURIComponent(vencimiento)}`;
+                window.open(`https://wa.me/${telefonoInput}?text=${mensaje}`, '_blank');
+            }
         }
         setTimeout(cargarDatos, 1500);
     }
 
     function enviarRecordatorio(nombre, producto, vencimiento, telefono) {
+        if (!telefono || telefono === "Sin WhatsApp") {
+            alert("Este cliente no tiene un número de WhatsApp registrado.");
+            return;
+        }
         let mensaje = `¡Hola *${encodeURIComponent(nombre)}*! Te saludamos de Digital Store para recordarte que tu cuenta de *${encodeURIComponent(producto)}* está próxima a vencer el *${encodeURIComponent(vencimiento)}*. ¿Deseas renovar tu servicio? 🔄`;
         window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
     }
@@ -342,6 +358,9 @@
                 } else {
                     etiquetaEstado += ` <span style="color: var(--danger-color); font-weight: bold;">(¡Vence en ${diasRestantes}d!)</span>`;
                 }
+            }
+
+            if (c.telefono && c.telefono !== "Sin WhatsApp") {
                 botonRecordatorio = `<button class="btn-sm btn-warn-sm" onclick="enviarRecordatorio('${c.nombre}', '${c.producto}', '${c.vencimiento}', '${c.telefono}')">🔔 Recordar</button>`;
             }
 
